@@ -28,19 +28,20 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
-    if (!req.body.title ||
-        !req.body.description) {
+    if (!req.body.title || !req.body.description) {
         const err = new Error('You must provide a title and description.');
         err.status = 400;
         next(err);
     }
-    for (let i = 0; i < req.body.steps.length; i += 1) {
-        if (!req.body.steps[i].title || !req.body.steps[i].description) {
+
+    req.body.steps.filter(step => {
+        if (!step.title || !step.description) {
             const err = new Error('You must provide a title and description for each step.');
             err.status = 400;
-            next(err);
+            return next(err);
         }
-    }
+    });
+
     const course = new Course(req.body);
     course.save((err, course) => {
         if (err) { return next(err); }
@@ -52,9 +53,10 @@ router.get('/:courseID', (req, res, next) => {
     res.json(req.course);
 });
 
-router.put('/:courseID', (req, res, next) => {
-    res.json({
-        message: 'Updates the course with the specified ID.'
+router.put('/:courseToUpdateID', (req, res, next) => {
+    Course.findByIdAndUpdate(req.body._id, req.body, { upsert: true }, (err, course) => {
+        if (err) { return next(err); }
+        res.status(204).send();
     });
 });
 
@@ -65,9 +67,9 @@ router.post('/:courseID/reviews', (req, res, next) => {
         req.course.save((err, course) => {
             if (err) { return next(err); }
         });
+        res.location('/');
         res.status(201).send();
     });
-
 });
 
 module.exports = router;
