@@ -2,6 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
+const utils = require('../utils');
 const Course = require('../models/course').Course;
 const Review = require('../models/review').Review;
 
@@ -23,11 +24,12 @@ router.param('courseID', (req, res, next, id) => {
 
 router.get('/', (req, res, next) => {
     Course.find({}, { title: true }).exec((err, courses) => {
+        if (err) { return next(err); }
         res.json(courses);
     });
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', utils.getAuthenticatedUser, (req, res, next) => {
     if (!req.body.title || !req.body.description) {
         const err = new Error('You must provide a title and description.');
         err.status = 400;
@@ -53,14 +55,20 @@ router.get('/:courseID', (req, res, next) => {
     res.json(req.course);
 });
 
-router.put('/:courseToUpdateID', (req, res, next) => {
+router.put('/:courseToUpdateID', utils.getAuthenticatedUser, (req, res, next) => {
     Course.findByIdAndUpdate(req.body._id, req.body, { upsert: true }, (err, course) => {
         if (err) { return next(err); }
         res.status(204).send();
     });
 });
 
-router.post('/:courseID/reviews', (req, res, next) => {
+router.post('/:courseID/reviews', utils.getAuthenticatedUser, (req, res, next) => {
+    if (!req.body.rating) {
+        const err = new Error('You must supply a rating to review a course.');
+        err.status = 400;
+        next(err);
+    }
+
     Review.create(req.body, (err, review) => {
         if (err) { return next(err); }
         req.course.reviews.push(review._id);

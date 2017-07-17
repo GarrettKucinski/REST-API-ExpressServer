@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const ReviewSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User' },
     postedOn: { type: Date, default: Date.now },
-    rating: { type: Number, min: 1, max: 5 },
+    rating: { type: Number, min: 1, max: 5, required: true },
     review: String
 });
 

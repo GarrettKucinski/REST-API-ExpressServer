@@ -1,17 +1,28 @@
 'use strict';
 
 const express = require('express');
+const utils = require('../utils');
+const auth = require('basic-auth');
 const router = express.Router();
+const User = require('../models/user').User;
 
-router.get('/', (req, res, next) => {
-    res.json({
-        message: 'Returns the currently authenticated user'
-    });
+router.get('/', utils.getAuthenticatedUser, (req, res, next) => {
+    res.json(req.currentUser);
 });
 
 router.post('/', (req, res, next) => {
-    res.json({
-        message: 'Creates a user, sets the Location header to "/" and returns no content.'
+    User.create(req.body, (err, user) => {
+        if (err) {
+            if (err.name === "MongoError" && err.code === 11000) {
+                err = new Error('A user already exists with that email. Please supply a unique email.');
+                err.status = 400;
+                return next(err);
+            } else {
+                return next(err);
+            }
+        }
+        res.location('/');
+        res.status(201).json();
     });
 });
 
