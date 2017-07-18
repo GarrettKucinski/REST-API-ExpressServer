@@ -43,22 +43,22 @@ router.post('/', utils.getAuthenticatedUser, (req, res, next) => {
     if (!req.body.title || !req.body.description) {
         const err = new Error('You must provide a title and description.');
         err.status = 400;
-        next(err);
+        return next(err);
+    } else {
+        req.body.steps.filter(step => {
+            if (!step.title || !step.description) {
+                const err = new Error('You must provide a title and description for each step.');
+                err.status = 400;
+                return next(err);
+            }
+        });
+
+        const course = new Course(req.body);
+        course.save((err, course) => {
+            if (err) { return next(err); }
+            res.status(201).send();
+        });
     }
-
-    req.body.steps.filter(step => {
-        if (!step.title || !step.description) {
-            const err = new Error('You must provide a title and description for each step.');
-            err.status = 400;
-            return next(err);
-        }
-    });
-
-    const course = new Course(req.body);
-    course.save((err, course) => {
-        if (err) { return next(err); }
-        res.status(201).send();
-    });
 });
 
 router.get('/:courseID', (req, res, next) => {
@@ -68,7 +68,7 @@ router.get('/:courseID', (req, res, next) => {
 router.put('/:courseToUpdateID', utils.getAuthenticatedUser, (req, res, next) => {
     Course.findByIdAndUpdate(req.body._id, req.body, { upsert: true }, (err, course) => {
         if (err) { return next(err); }
-        res.status(204).send();
+        res.status(204);
     });
 });
 
@@ -81,11 +81,11 @@ router.post('/:courseID/reviews', utils.getAuthenticatedUser, (req, res, next) =
     if (data.courseOwner === data.user) {
         const err = new Error('You cannot review your own course.');
         err.status = 403;
-        next(err);
+        return next(err);
     } else if (!req.body.rating) {
         const err = new Error('You must supply a rating to review a course.');
         err.status = 400;
-        next(err);
+        return next(err);
     } else {
         Review.create(req.body, (err, review) => {
             if (err) { return next(err); }
@@ -94,7 +94,7 @@ router.post('/:courseID/reviews', utils.getAuthenticatedUser, (req, res, next) =
                 if (err) { return next(err); }
             });
             res.location('/');
-            res.status(201).send();
+            res.status(201);
         });
     }
 });
