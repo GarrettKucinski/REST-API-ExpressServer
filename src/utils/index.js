@@ -8,7 +8,7 @@ const getAuthenticatedUser = (req, res, next) => {
 
     if (!user) {
         const err = new Error('Could not authenticate, user not found.');
-        err.status = 403;
+        err.status = 401;
         return next(err);
     } else {
         User.authenticate(user.name, user.pass, (err, currentUser) => {

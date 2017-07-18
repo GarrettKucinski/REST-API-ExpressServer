@@ -14,6 +14,13 @@ describe('GET /api/users', (done) => {
     });
 });
 
-describe('POST /api/users', () => {
-    it('should')
+describe('GET NO_AUTH /api/users', (done) => {
+    it('should return a 401 error response for an unauthorized request', () => {
+        return request('localhost:5000')
+            .get('/api/users')
+            .expect(err => {
+                err.status = 401;
+                err.message = 'Could not authenticate, user not found.';
+            }, done);
+    });
 });
