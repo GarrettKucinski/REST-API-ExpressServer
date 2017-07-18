@@ -8,8 +8,19 @@ const Review = require('../models/review').Review;
 
 router.param('courseID', (req, res, next, id) => {
     Course.findById(id)
-        .populate('user')
-        .populate('reviews')
+        .populate({
+            path: 'user',
+            select: 'fullName -_id'
+        })
+        .populate({
+            path: 'reviews',
+            select: 'user -_id',
+            populate: {
+                path: 'user',
+                model: 'User',
+                select: 'fullName'
+            }
+        })
         .exec((err, course) => {
             if (err) { return next(err); }
             if (!course) {
