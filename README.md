@@ -18,14 +18,13 @@ To start the project run
 ```
 npm install
 ```
-Once that completes run 
+
+Once that completes run the following in the root of the project.
 ```
 npm start
 ```
-in the root of the project.
 
-To run the tests, please be sure to have the express server running as well as mongo and run
+To run the tests, please be sure to have the express server running as well as mongo and run the following in your console
 ```
 npm test
 ```
-in your console
