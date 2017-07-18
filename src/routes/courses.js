@@ -68,7 +68,7 @@ router.get('/:courseID', (req, res, next) => {
 router.put('/:courseToUpdateID', utils.getAuthenticatedUser, (req, res, next) => {
     Course.findByIdAndUpdate(req.body._id, req.body, { upsert: true }, (err, course) => {
         if (err) { return next(err); }
-        res.status(204);
+        res.status(204).send();
     });
 });
 
@@ -94,7 +94,7 @@ router.post('/:courseID/reviews', utils.getAuthenticatedUser, (req, res, next) =
                 if (err) { return next(err); }
             });
             res.location('/');
-            res.status(201);
+            res.status(201).send();
         });
     }
 });

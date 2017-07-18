@@ -12,6 +12,9 @@ router.get('/', utils.getAuthenticatedUser, (req, res, next) => {
 
 router.post('/', (req, res, next) => {
     User.create(req.body, (err, user) => {
+        if (!req.body.emailAddress || !req.body.fullName) {
+            err.status = 400;
+        }
         if (err) {
             if (err.name === "MongoError" && err.code === 11000) {
                 err = new Error('A user already exists with that email. Please supply a unique email.');
