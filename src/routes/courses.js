@@ -10,11 +10,10 @@ router.param('courseID', (req, res, next, id) => {
     Course.findById(id)
         .populate({
             path: 'user',
-            select: 'fullName -_id'
+            select: 'fullName'
         })
         .populate({
             path: 'reviews',
-            select: 'user -_id',
             populate: {
                 path: 'user',
                 model: 'User',
@@ -74,21 +73,30 @@ router.put('/:courseToUpdateID', utils.getAuthenticatedUser, (req, res, next) =>
 });
 
 router.post('/:courseID/reviews', utils.getAuthenticatedUser, (req, res, next) => {
-    if (!req.body.rating) {
+    const data = {
+        user: req.currentUser._id.toString(),
+        courseOwner: req.course.user._id.toString()
+    };
+
+    if (data.courseOwner === data.user) {
+        const err = new Error('You cannot review your own course.');
+        err.status = 403;
+        next(err);
+    } else if (!req.body.rating) {
         const err = new Error('You must supply a rating to review a course.');
         err.status = 400;
         next(err);
-    }
-
-    Review.create(req.body, (err, review) => {
-        if (err) { return next(err); }
-        req.course.reviews.push(review._id);
-        req.course.save((err, course) => {
+    } else {
+        Review.create(req.body, (err, review) => {
             if (err) { return next(err); }
+            req.course.reviews.push(review._id);
+            req.course.save((err, course) => {
+                if (err) { return next(err); }
+            });
+            res.location('/');
+            res.status(201).send();
         });
-        res.location('/');
-        res.status(201).send();
-    });
+    }
 });
 
 module.exports = router;
